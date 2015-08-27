@@ -25,7 +25,7 @@ driver.controlFlow().on('uncaughtException', function(err) {
     // $("#reservation_point_select input[placeholder='目的地']").attr("data-value","OKA");
 
 　　//xpathがうまく取れない
-    driver.findElement(By.xpath("/html/body/div[2]/header/div/div[6]/div/div[1]/ul/li[1]/div/div[1]/div/input")).click();
+    driver.findElement("#reservation_point_select input[placeholder='出発地']").type('data-value','OKA');
 
     // driver.findElement(By.xpath("//div[@id='reservation_point_select']/div/div/ul/li")).click();
     // driver.findElement(By.xpath("//div[@id='reservation_point_select']/div[2]/div/ul/li[2]")).click();
