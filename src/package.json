@@ -1,0 +1,32 @@
+{
+  "name": "flight_selenium",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "JetSter.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "data-utils": "^0.0.2",
+    "log4js": "^0.6.29",
+    "bufferutil": "1.2.1",
+    "utf-8-validate": "1.2.1",
+    "kerberos": "0.0.18",
+    "moment": "^2.10.6",
+    "mongodb": "2.0.x",
+    "mongoskin": "2.0.x",
+    "selenium-webdriver": "2.47.x"
+  },
+  "devDependencies": {},
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f5developper/selenium_flight.git"
+  },
+  "author": "maruyama",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/f5developper/selenium_flight/issues"
+  },
+  "homepage": "https://github.com/f5developper/selenium_flight#readme"
+}
