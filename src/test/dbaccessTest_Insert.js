@@ -2,19 +2,6 @@ var mongo = require('mongoskin');
 var moment = require('moment');
 var client = mongo.db('mongodb://160.16.95.237:27017/flight');
 var collection = client.collection('flight_info');
-// var collection = client.collection('sample');
-
-// var thread = {
-//     "title" : "title-4",
-//     "content" : "this is title-4 content."
-// };
-
-
-
-
-// collection.insert(thread);
-
-// collection.find('testid');
 
 collection.insert({
         //便名
