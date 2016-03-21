@@ -20,6 +20,34 @@ driver.controlFlow().on('uncaughtException', function (err) {
 var FLIGHT_MAP = [
     {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]}
 ];
+var FlightInfo = {
+    flightId: '',
+    //航空会社CD
+    airlineCompanyCd: '',
+    //航空会社名称
+    airlineCompanyName: '',
+    //出発空港ID
+    leavedFrom: '',
+    //出発空港
+    leavedFromName: '',
+    //出発時間
+    leavedAt: '',
+    //到着空港ID
+    arrivalTo: '',
+    //到着空港
+    arrivalToName: '',
+    //到着時間
+    arrivalAt: '',
+    //料金プラン
+    flightPlan: '片道',
+    //空席状況
+    vacancyStatus: '',
+    //料金
+    amount: '',
+    //データ登録時間
+    createdAt: ''
+};
+
 
 var topPage = {
     //URLトップ
@@ -43,8 +71,11 @@ var topPage = {
 };
 
 var flightInfoPage = {
-    priceTable : By.xpath('//table[@class="TBLYourFlight"]'),
-    priceRows : By.xpath('//table[@class="TBLYourFlight"]/tbody/tr[starts-with(@class,"FlightInformation")]'),
+    priceTable: By.xpath('//table[@class="TBLYourFlight"]'),
+    priceRows: By.xpath('//table[@class="TBLYourFlight"]/tbody/tr[starts-with(@class,"FlightInformation")]'),
+    priceFlightName: By.xpath('./td[1]/div/div/p[@class="demoText"]/a'),
+    leavedFrom: By.xpath('./td[2]/div/div[@class="FlightdurationDetail Deptflight"]'),
+    arrivalTo: By.xpath('./td[2]/div/div[@class="FlightdurationDetail Arrivflight"]')
 };
 
 
@@ -61,9 +92,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
     var from = flight.from;
     var toList = flight.toList;
     toList.forEach(function (to, key) {
-//        driver.get(topPage.URL).then(function () {
-//            return driver.findElement(topPage.tripOneWay);
-        driver.get(topPage.URL).then(function(){
+        driver.get(topPage.URL).then(function () {
             driver.wait(until.elementLocated(topPage.tripOneWay));
         }).then(function () {
             return driver.findElement(topPage.tripOneWay);
@@ -101,12 +130,53 @@ FLIGHT_MAP.forEach(function (flight, index) {
                 elem[0].click();
             }).then(function () {
                 driver.findElement(topPage.search).click();
-            }).then(function(){
-                driver.wait(until.elementLocated(flightInfoPage.priceTable));
-            }).then(function(){
-                return driver.findElements(flightInfoPage.priceRows);
+            }).then(function () {
+                //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
+                return driver.sleep(2000);
+//                driver.wait(until.elementLocated(flightInfoPage.priceTable));
+            }).then(function () {
+                var promise = driver.findElements(flightInfoPage.priceRows);
+                promise.then(function (rows) {
+
+                    var flightInfoList = [];
+                    //フライトインフォは後でインスタンス化せねば
+
+                    rows.forEach(function (row, key) {
+                        var flightInfo = {};
+                        flightInfo.leavedFrom = from;
+                        flightInfo.arrivalTo = to;
+
+                        row.findElement(flightInfoPage.priceFlightName).then(function (e) {
+                            e.getText().then(function (text) {
+                                flightInfo.flightId = text;
+                            });
+                        });
+                        row.findElement(flightInfoPage.leavedFrom).then(function (e) {
+                            e.getText().then(function (text) {
+                                var leavedInfo = [];
+                                leavedInfo = text.split('  ');
+                                flightInfo.leavedFromName = leavedInfo[3];
+                                flightInfo.leavedAt = leavedInfo[1] + leavedInfo[2];
+                            });
+
+                        });
+                        row.findElement(flightInfoPage.arrivalTo).then(function (e) {
+                            e.getText().then(function (text) {
+                                var arrivedInfo = [];
+                                arrivedInfo = text.split('  ');
+                                flightInfo.arrivalToName = arrivedInfo[3];
+                                flightInfo.arrivalAt = arrivedInfo[1] + arrivedInfo[2];
+                            });
+
+                        });
+                        //もしかしたら非同期だからはいってないもよう。
+                        flightInfoList.push(flightInfo);
+
+                    });
+
+                    console.log(flightInfoList);
+                });
             });
-            
         });
 
     });
