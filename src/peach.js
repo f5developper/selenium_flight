@@ -2,6 +2,7 @@
 //vanilla空港からのデータ取得用selenium
 //**************************************************
 //準備
+
 var util = require('util');
 var moment = require('moment');
 var webdriver = require('selenium-webdriver'),
@@ -9,8 +10,13 @@ var webdriver = require('selenium-webdriver'),
         until = webdriver.until,
         flow = webdriver.promise.controlFlow();
 
+//var firefox = require('selenium-webdriver/firefox');
+//var profile = new firefox.Profile('firefox_profile');
+//var options = new firefox.Options().setProfile(profile);
+
 var driver = new webdriver.Builder()
-        .forBrowser('firefox')
+//        .setFirefoxOptions(options)
+        .forBrowser('chrome')
         .build();
 
 driver.controlFlow().on('uncaughtException', function (err) {
@@ -57,8 +63,9 @@ var topPage = {
     //出発パネル
     tripFrom: By.id("hyperlink-from"),
     tripTo: By.id('hyperlink-to'),
-    //なんすかね？
-    backGround: By.id('backgroundDialog'),
+    tripFromClose: By.id('dialogFromClose'),
+    //なんかこの人のせいでじゃまされます
+    backgroundDialog: By.id('backgroundDialog'),
     leavedFrom: function (from) {
         return By.xpath('//li[@id="' + from + '"]/a');
     },
@@ -71,11 +78,13 @@ var topPage = {
 };
 
 var flightInfoPage = {
-    priceTable: By.xpath('//table[@class="TBLYourFlight"]'),
-    priceRows: By.xpath('//table[@class="TBLYourFlight"]/tbody/tr[starts-with(@class,"FlightInformation")]'),
-    priceFlightName: By.xpath('./td[1]/div/div/p[@class="demoText"]/a'),
-    leavedFrom: By.xpath('./td[2]/div/div[@class="FlightdurationDetail Deptflight"]'),
-    arrivalTo: By.xpath('./td[2]/div/div[@class="FlightdurationDetail Arrivflight"]')
+//    priceTable: By.xpath('//table[@class="TBLYourFlight"]'),
+    priceRows: By.xpath('//div[@class="flight_table-body"]/div[@class="flight_table-row"]'),
+    priceFlightName: By.xpath('./div[@class="flight_table-cell width_01-o"]/div[@class="plane_ticket-c"]/span'),
+    leavedAt: By.xpath('./div[@class="flight_table-cell width_02-o"]/div[@class="plane_ticket-c"]/span[@class="plane_ticket-wrapper left_col-o"]/span'),
+//*[@id="js_wrapper"]/div[2]/div[1]/article/div[3]/div/div[1]/div/div[2]/div/span[1]/span/span[1]/text()    
+    leavedFromName: By.xpath('//div[@class="flight_table-header"/div[@class="flight_table-row"]/div[@class="flight_table-cell width_02-o"]/div[@class="plane_ticket-c"]/span[@class="plane_ticket-wrapper left_col-o"]/span[@class="plane_ticket-info question-o text_container-o bold_text-o"]/span'),
+//    arrivalTo: By.xpath('./td[2]/div/div[@class="FlightdurationDetail Arrivflight"]')
 };
 
 
@@ -93,7 +102,26 @@ FLIGHT_MAP.forEach(function (flight, index) {
     var toList = flight.toList;
     toList.forEach(function (to, key) {
         driver.get(topPage.URL).then(function () {
-            driver.wait(until.elementLocated(topPage.tripOneWay));
+            console.log("zzzz");
+
+            return driver.findElement(topPage.tripOneWay);
+        }).then(function (e) {
+            console.log("yyyyy");
+
+            driver.wait(until.elementIsVisible(e));
+        }).then(function () {
+            return driver
+                    .findElements(By.id("close"))
+                    .then(function (list) {
+                        webdriver.promise.filter(list, function (e) {
+                            e.isDisplayed().then(function (bool) {
+                                if (bool) {
+                                    e.click();
+                                    driver.sleep(500);
+                                }
+                            });
+                        });
+                    });
         }).then(function () {
             return driver.findElement(topPage.tripOneWay);
         }).then(function (e) {
@@ -101,25 +129,41 @@ FLIGHT_MAP.forEach(function (flight, index) {
         }).then(function () {
             return driver.findElement(topPage.tripFrom);
         }).then(function (e) {
+            console.log("aaaa");
             e.click();
         }).then(function () {
+            console.log("bbbb");
             return driver.findElement(topPage.leavedFrom(from));
         }).then(function (e) {
+            console.log("cccc");
             e.click();
         }).then(function () {
-            driver.findElement(topPage.backGround).then(function (e) {
+            driver.findElement(topPage.tripFromClose).then(function (e) {
                 e.click();
+                driver.findElement(topPage.backgroundDialog)
+                        .then(function (elem) {
+                        });
             }).then(function () {
+                return driver.findElement(topPage.backgroundDialog);
+            }).then(function (e) {
+                return driver.wait(until.elementIsNotVisible(e));
+            }).then(function () {
+                console.log("fff");
                 return driver.findElement(topPage.tripTo);
             }).then(function (e) {
+                console.log("gggg");
                 e.click();
             }).then(function () {
+                console.log("hhhh");
                 return driver.findElement(topPage.arrivedTo(to));
             }).then(function (e) {
+                console.log("iiii");
                 e.click();
             }).then(function () {
+                console.log("jjjj");
                 return driver.findElements(topPage.dayList);
             }).then(function (list) {
+                console.log("kkkkk");
                 return webdriver.promise.filter(list, function (e) {
 
                     return e.getText().then(function (text) {
@@ -129,52 +173,65 @@ FLIGHT_MAP.forEach(function (flight, index) {
             }).then(function (elem) {
                 elem[0].click();
             }).then(function () {
+                return driver.findElement(topPage.backgroundDialog);
+            }).then(function (e) {
+                return driver.wait(until.elementIsNotVisible(e));
+            }).then(function () {
                 driver.findElement(topPage.search).click();
             }).then(function () {
                 //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
-                return driver.sleep(2000);
-//                driver.wait(until.elementLocated(flightInfoPage.priceTable));
+                return driver.sleep(5000);
             }).then(function () {
-                var promise = driver.findElements(flightInfoPage.priceRows);
-                promise.then(function (rows) {
+                console.log("lllll");
+
+                var priceRowsPromise = driver.findElements(flightInfoPage.priceRows);
+                priceRowsPromise.then(function (rows) {
+                    console.log("mmmm");
 
                     var flightInfoList = [];
                     //フライトインフォは後でインスタンス化せねば
-
+                    console.log(rows.length);
                     rows.forEach(function (row, key) {
+                        console.log("nnnn");
                         var flightInfo = {};
                         flightInfo.leavedFrom = from;
                         flightInfo.arrivalTo = to;
+                        flightInfo.arrivalTo = to;
 
-                        row.findElement(flightInfoPage.priceFlightName).then(function (e) {
-                            e.getText().then(function (text) {
-                                flightInfo.flightId = text;
+                        flow = webdriver.promise.controlFlow();
+                        flow.execute(function () {
+                            row.findElement(flightInfoPage.priceFlightName).then(function (e) {
+                                e.getText().then(function (text) {
+                                    flightInfo.flightId = text;
+                                });
                             });
-                        });
-                        row.findElement(flightInfoPage.leavedFrom).then(function (e) {
-                            e.getText().then(function (text) {
-                                var leavedInfo = [];
-                                leavedInfo = text.split('  ');
-                                flightInfo.leavedFromName = leavedInfo[3];
-                                flightInfo.leavedAt = leavedInfo[1] + leavedInfo[2];
-                            });
+                            row.findElement(flightInfoPage.leavedAt).then(function (e) {
+                                e.getText().then(function (text) {
+                                    flightInfo.leavedAt = text;
+                                });
+//                                    flightInfo.leavedFromName = leavedInfo[3];
 
-                        });
-                        row.findElement(flightInfoPage.arrivalTo).then(function (e) {
-                            e.getText().then(function (text) {
-                                var arrivedInfo = [];
-                                arrivedInfo = text.split('  ');
-                                flightInfo.arrivalToName = arrivedInfo[3];
-                                flightInfo.arrivalAt = arrivedInfo[1] + arrivedInfo[2];
                             });
-
+//                            row.findElement(flightInfoPage.leavedFromName).then(function (e) {
+//                                e.getText().then(function (text) {
+//                                    flightInfo.leavedFromName = text;
+//                                });
+//
+//                            });
+//                            row.findElement(flightInfoPage.arrivalTo).then(function (e) {
+//                                e.getText().then(function (text) {
+//                                    var arrivedInfo = [];
+//                                    arrivedInfo = text.split('  ');
+//                                    flightInfo.arrivalToName = arrivedInfo[3];
+//                                    flightInfo.arrivalAt = arrivedInfo[1] + arrivedInfo[2];
+//                                });
+//                            });
+                        }).then(function () {
+                            console.log("aaaaa");
+                            console.log(flightInfo);
                         });
-                        //もしかしたら非同期だからはいってないもよう。
-                        flightInfoList.push(flightInfo);
 
                     });
-
-                    console.log(flightInfoList);
                 });
             });
         });
