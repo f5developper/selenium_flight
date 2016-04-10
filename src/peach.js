@@ -235,9 +235,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                     });
                                 }
                             });
-
                         }).then(function () {
-                            console.log("==========");
                             console.log(flightInfo.amount);
                         });
 
