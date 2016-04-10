@@ -15,7 +15,7 @@
     "moment": "^2.10.6",
     "mongodb": ">2.0.x",
     "mongoskin": ">2.0.x",
-    "selenium-webdriver": ">2.47.x"
+    "selenium-webdriver": "2.47.x"
   },
   "devDependencies": {},
   "scripts": {},
