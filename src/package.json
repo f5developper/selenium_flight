@@ -13,9 +13,9 @@
     "utf-8-validate": "1.2.1",
     "kerberos": "0.0.18",
     "moment": "^2.10.6",
-    "mongodb": "2.0.x",
-    "mongoskin": "2.0.x",
-    "selenium-webdriver": "2.47.x"
+    "mongodb": ">2.0.x",
+    "mongoskin": ">2.0.x",
+    "selenium-webdriver": ">2.47.x"
   },
   "devDependencies": {},
   "scripts": {},
