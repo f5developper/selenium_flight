@@ -9,6 +9,7 @@ var webdriver = require('selenium-webdriver'),
         By = webdriver.By,
         until = webdriver.until,
         flow = webdriver.promise.controlFlow();
+var flight_info_append = require('./moduls/flight_info.js');
 
 //var firefox = require('selenium-webdriver/firefox');
 //var profile = new firefox.Profile('firefox_profile');
@@ -236,7 +237,8 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 }
                             });
                         }).then(function () {
-                            console.log(flightInfo.amount);
+                            flight_info_append.flight_info.append(flightInfo)
+                            console.log(flightInfo);
                         });
 
                     });
