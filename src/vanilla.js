@@ -2,42 +2,81 @@
 //vanilla空港からのデータ取得用selenium
 //**************************************************
 //準備
+
 var util = require('util');
+var moment = require('moment');
 var webdriver = require('selenium-webdriver'),
-    By = webdriver.By,
-    until = webdriver.until,
-    flow = webdriver.promise.controlFlow();
+        By = webdriver.By,
+        until = webdriver.until,
+        flow = webdriver.promise.controlFlow();
 
 var driver = new webdriver.Builder()
-    .forBrowser('firefox')
-    .build();
+        .forBrowser('chrome')
+        .build();
 
-driver.controlFlow().on('uncaughtException', function(err) {
-    console.log('uncaughtException: ' + err);
+console.log("serch setting start.");
+
+var date = require('./date.js');
+//空港データ取得
+
+var from = 'NRT';
+var to = 'CTS';
+
+var url = "https://www.vanilla-air.com/jp/booking/#/flight-select/?tripType=OW&origin=" + from + "&destination=" + to + "&outboundDate=" + date.nextDay(date.today()) + "&adults=1&children=0&infants=0&promoCode=&mode=searchResultInter";
+
+//検索画面遷移
+var planPages = function (driver, By) {
+
+    var flightInfo = require('./flightInfo');
+
+//    driver.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][1]/dt/span[@class='ng-binding']")).then(function(e){
+    driver.findElement(By.xpath("html/body/div[1]/div[2]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/div/div[5]/div/div[2]/dl[2]/dt/span[2]")).then(function (e) {
+        flightInfo.flightId = e.getText();
+        console.log('flightcd = ' + flightInfo.flightId);
+    }).then(function () {
+        return driver.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][1]/dt/span[@class='ng-binding']/span"));
+    }).then(function (e) {
+        var times = e.getText();
+        console.log('times = ' + times);
+    }).then(function () {
+        return driver.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][1]/dd[1]//span[@class='pl30 ng-binding']"));
+    }).then(function (e) {
+        var span1 = e.getText();
+        console.log('spn1 = ' + span1);
+    }).then(function () {
+        return driver.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][1]/dd[2]//span[@class='pl30 ng-binding']"));
+    }).then(function (e) {
+        var spn2 = e.getText();
+        console.log('spn2 = ' + spn2);
+    })
+
+    return flightInfo;
+
+};
+
+//検索用の空港データ取得
+//全ルート網羅
+driver.get(url).then(function () {
+    driver.wait(driver.findElement(By.xpath(
+            "/html/body/div[1]/div[2]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/div/div[5]/div/div[2]/dl[2]/dt/span[2]/span"
+            )
+            ), 10000).then(function () {
+        driver.sleep(5000);
+    }).then(function(){
+        
+        driver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/div/div[5]/div/div[2]/dl[2]/dt/span[2]/span")
+                ).then(function(e) {
+                    e.getText().then(function(text){
+                        console.log(text);
+                    })
+//        console.log(e.getText());
+//        console.log('-------getAttlibute');
+//        console.log(e.getAttribute("text"));
+//        console.log('end');
+//        driver.executeScript('alert("1")');                    
+                })
+    });
 });
 
 
-    console.log("serch setting start.");
-    //検索画面遷移
-    driver.get("http://www.vanilla-air.com/jp/");
 
-    driver.findElement(By.css("#reservation_point_select > div:nth-child(1) > div:nth-child(2) > input:nth-child(1)")).click();
-    driver.findElement(By.css("#reservation_point_select > div:nth-child(1) > div:nth-child(2) > ul:nth-child(2) > li:nth-child(1)")).click();
-    driver.findElement(By.css("div.form-item-destination:nth-child(2) > div:nth-child(2) > input:nth-child(1)")).click();
-
-    // $("#reservation_point_select input[placeholder='出発地']").attr("data-value","OKA");
-    // $("#reservation_point_select input[placeholder='目的地']").attr("data-value","OKA");
-
-　　//xpathがうまく取れない
-    // driver.findElement("#reservation_point_select input[placeholder='出発地']").type('data-value','OKA');
-
-    // driver.findElement(By.xpath("//div[@id='reservation_point_select']/div/div/ul/li")).click();
-    // driver.findElement(By.xpath("//div[@id='reservation_point_select']/div[2]/div/ul/li[2]")).click();
-    // driver.findElement(By.xpath("//a[contains(text(),'26')]")).click();
-    // driver.findElement(By.xpath("//a[contains(text(),'片道')]")).click();
-
-    driver.findElement(By.xpath("//button[@id='edit-submit-ticket']")).click();
-    // var timeoutMSec = 10000;
-//    driver.wait(until.elementLocated(By.id('')), timeoutMSec);
-
-    console.log("serch setting end.");
