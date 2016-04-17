@@ -26,17 +26,17 @@ var driver = new webdriver.Builder()
 //});
 
 var FLIGHT_MAP = [
-//    {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
-    {from: "CTS", toList: ["KIX", "NRT"]},
-    {from: "SDJ", toList: ["KIX"]},
-    {from: "NRT", toList: ["KIX", "CTS", "FUK", "OKA"]},
-    {from: "MYJ", toList: ["KIX"]},
-    {from: "FUK", toList: ["KIX", "NRT", "OKA"]},
-    {from: "NGS", toList: ["KIX"]},
-    {from: "KMI", toList: ["KIX"]},
-    {from: "KOJ", toList: ["KIX"]},
-    {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
-    {from: "ISG", toList: ["KIX"]},
+    {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
+//    {from: "CTS", toList: ["KIX", "NRT"]},
+//    {from: "SDJ", toList: ["KIX"]},
+//    {from: "NRT", toList: ["KIX", "CTS", "FUK", "OKA"]},
+//    {from: "MYJ", toList: ["KIX"]},
+//    {from: "FUK", toList: ["KIX", "NRT", "OKA"]},
+//    {from: "NGS", toList: ["KIX"]},
+//    {from: "KMI", toList: ["KIX"]},
+//    {from: "KOJ", toList: ["KIX"]},
+//    {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
+//    {from: "ISG", toList: ["KIX"]},
 ];
 var FlightInfo = {
     flightId: '',
@@ -83,13 +83,14 @@ var topPage = {
     },
     //dayDown
     arrivedTo: function (to) {
-        
-        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
-            if (exists) {
                 return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
-            }
 
-        });
+//        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
+//            if (exists) {
+//                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
+//            }
+//
+//        });
     },
     dayList: By.xpath('//div[@id="calendar-input-departing-on-1"]/*/div[@class="boxMainStripped"]/div[@class="boxMainInner"]/div[@class="boxMainCellsContainer"]/div[@class="dayNormal"]'),
     search: By.name('flyinpeach-booking')
@@ -112,7 +113,6 @@ function replaceAmount(text) {
     return text;
 }
 
-var searchDay = moment().add(15, 'days').format("D");
 
 var index = 0;
 //while (index < 60) {
@@ -120,10 +120,15 @@ var index = 0;
 //    console.log(searchDay);
 //}
 
-
+var searchDay = moment().add(15, 'days').format("D");
+var searchDate = moment();
 FLIGHT_MAP.forEach(function (flight, index) {
     var from = flight.from;
     var toList = flight.toList;
+    index = index + 1;
+
+    searchDate.add(index, 'days');
+
     toList.forEach(function (to, key) {
         driver.get(topPage.URL).then(function () {
 
@@ -179,7 +184,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
                 return webdriver.promise.filter(list, function (e) {
 
                     return e.getText().then(function (text) {
-                        return text === searchDay;
+                        return text === searchDate.format("D");
                     });
                 });
             }).then(function (elem) {
@@ -216,7 +221,8 @@ FLIGHT_MAP.forEach(function (flight, index) {
                             });
                             row.findElement(flightInfoPage.leavedAt).then(function (e) {
                                 e.getText().then(function (text) {
-                                    flightInfo.leavedAt = text;
+                                    var fromDate = moment(searchDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                    flightInfo.leavedAt = fromDate;
                                 });
                             });
                             row.findElement(flightInfoPage.leavedFromName).then(function (e) {
