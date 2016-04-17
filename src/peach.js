@@ -26,7 +26,17 @@ var driver = new webdriver.Builder()
 //});
 
 var FLIGHT_MAP = [
-    {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]}
+//    {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
+    {from: "CTS", toList: ["KIX", "NRT"]},
+    {from: "SDJ", toList: ["KIX"]},
+    {from: "NRT", toList: ["KIX", "CTS", "FUK", "OKA"]},
+    {from: "MYJ", toList: ["KIX"]},
+    {from: "FUK", toList: ["KIX", "NRT", "OKA"]},
+    {from: "NGS", toList: ["KIX"]},
+    {from: "KMI", toList: ["KIX"]},
+    {from: "KOJ", toList: ["KIX"]},
+    {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
+    {from: "ISG", toList: ["KIX"]},
 ];
 var FlightInfo = {
     flightId: '',
@@ -72,8 +82,13 @@ var topPage = {
         return By.xpath('//li[@id="' + from + '"]/a');
     },
     //dayDown
-    arrivedTo: function (to) {
-        return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
+    arrivedTo: function (to, driver) {
+        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
+            if (exists) {
+                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
+            }
+
+        });
     },
     dayList: By.xpath('//div[@id="calendar-input-departing-on-1"]/*/div[@class="boxMainStripped"]/div[@class="boxMainInner"]/div[@class="boxMainCellsContainer"]/div[@class="dayNormal"]'),
     search: By.name('flyinpeach-booking')
@@ -113,7 +128,6 @@ FLIGHT_MAP.forEach(function (flight, index) {
 
             return driver.findElement(topPage.tripOneWay);
         }).then(function (e) {
-
             driver.wait(until.elementIsVisible(e));
         }).then(function () {
             return driver
@@ -155,7 +169,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
             }).then(function (e) {
                 e.click();
             }).then(function () {
-                return driver.findElement(topPage.arrivedTo(to));
+                return driver.findElement(topPage.arrivedTo(to, driver));
             }).then(function (e) {
                 e.click();
             }).then(function () {
@@ -186,7 +200,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
                     var flightInfoList = [];
                     //フライトインフォは後でインスタンス化せねば
                     rows.forEach(function (row, key) {
-                        
+
                         var flightInfo = '';
                         flightInfo = (JSON.parse(JSON.stringify(FlightInfo)));
                         flightInfo.leavedFrom = from;
@@ -219,7 +233,6 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 if (isFound) {
                                     row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
                                         e.getText().then(function (text) {
-                                            console.log('ハッピーピーチ:' + replaceAmount(text));
                                             flightInfo.amount.push({key: 'ハッピーピーチ', amount: replaceAmount(text)});
                                         });
                                     });
@@ -230,15 +243,13 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 if (isFound) {
                                     row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
                                         e.getText().then(function (text) {
-                                            console.log('ハッピーピーチプラス:' + replaceAmount(text));
                                             flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: replaceAmount(text)});
                                         });
                                     });
                                 }
                             });
                         }).then(function () {
-                            flight_info_append.flight_info.append(flightInfo)
-                            console.log(flightInfo);
+                            flight_info_append.flight_info.append(flightInfo);
                         });
 
                     });
