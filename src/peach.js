@@ -9,7 +9,7 @@ var webdriver = require('selenium-webdriver'),
         By = webdriver.By,
         until = webdriver.until,
         flow = webdriver.promise.controlFlow();
-var flight_info_append = require('./moduls/flight_info.js');
+var flight_info_append = require('./modules/flight_info.js');
 
 //var firefox = require('selenium-webdriver/firefox');
 //var profile = new firefox.Profile('firefox_profile');
@@ -82,7 +82,8 @@ var topPage = {
         return By.xpath('//li[@id="' + from + '"]/a');
     },
     //dayDown
-    arrivedTo: function (to, driver) {
+    arrivedTo: function (to) {
+        
         driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
             if (exists) {
                 return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
@@ -169,7 +170,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
             }).then(function (e) {
                 e.click();
             }).then(function () {
-                return driver.findElement(topPage.arrivedTo(to, driver));
+                return driver.findElement(topPage.arrivedTo(to));
             }).then(function (e) {
                 e.click();
             }).then(function () {
