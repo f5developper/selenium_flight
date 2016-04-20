@@ -6,7 +6,7 @@ exports.today = function () {
         dt.getMonth() + 1,
         dt.getDate()
     ].join('-')
-    console.log(days);
+//    console.log(days);
     return days;
 }
 
@@ -18,7 +18,7 @@ exports.lastDay = function () {
         dt.getMonth() + 1,
         dt.getDate()
     ].join('-')
-    console.log(days);
+//    console.log(days);
     return days;
 }
 
@@ -30,7 +30,7 @@ exports.nextDay = function (date) {
         dt.getMonth() + 1,
         dt.getDate()
     ].join('-')
-    console.log(days);
+//    console.log(days);
     return days;
 }
 
