@@ -27,16 +27,16 @@ var driver = new webdriver.Builder()
 
 var FLIGHT_MAP = [
     {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
-//    {from: "CTS", toList: ["KIX", "NRT"]},
-//    {from: "SDJ", toList: ["KIX"]},
-//    {from: "NRT", toList: ["KIX", "CTS", "FUK", "OKA"]},
-//    {from: "MYJ", toList: ["KIX"]},
-//    {from: "FUK", toList: ["KIX", "NRT", "OKA"]},
-//    {from: "NGS", toList: ["KIX"]},
-//    {from: "KMI", toList: ["KIX"]},
-//    {from: "KOJ", toList: ["KIX"]},
-//    {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
-//    {from: "ISG", toList: ["KIX"]},
+    {from: "CTS", toList: ["KIX", "NRT"]},
+    {from: "SDJ", toList: ["KIX"]},
+    {from: "NRT", toList: ["KIX", "CTS", "FUK", "OKA"]},
+    {from: "MYJ", toList: ["KIX"]},
+    {from: "FUK", toList: ["KIX", "NRT", "OKA"]},
+    {from: "NGS", toList: ["KIX"]},
+    {from: "KMI", toList: ["KIX"]},
+    {from: "KOJ", toList: ["KIX"]},
+    {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
+    {from: "ISG", toList: ["KIX"]},
 ];
 var FlightInfo = {
     flightId: '',
@@ -83,8 +83,7 @@ var topPage = {
     },
     //dayDown
     arrivedTo: function (to) {
-                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
-
+                return By.xpath('//div[@id="dialogTo"]//*/li[@id="' + to + '"]/a');
 //        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
 //            if (exists) {
 //                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
@@ -188,6 +187,8 @@ FLIGHT_MAP.forEach(function (flight, index) {
                     });
                 });
             }).then(function (elem) {
+                // 日付が反映される前にクリックされるためスリープを入れる。
+                driver.sleep(500);
                 elem[0].click();
             }).then(function () {
                 return driver.findElement(topPage.backgroundDialog);
