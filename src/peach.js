@@ -43,7 +43,7 @@ var FlightInfo = {
     //航空会社CD
     airlineCompanyCd: '',
     //航空会社名称
-    airlineCompanyName: '',
+    airlineCompanyName: 'ピーチ',
     //出発空港ID
     leavedFrom: '',
     //出発空港
@@ -101,6 +101,7 @@ var flightInfoPage = {
     priceFlightName: By.xpath('./div[@class="flight_table-cell width_01-o"]/div[@class="plane_ticket-c"]/span'),
     leavedAt: By.xpath('./div[@class="flight_table-cell width_02-o"]/div[@class="plane_ticket-c"]/span[@class="plane_ticket-wrapper left_col-o"]/span'),
     leavedFromName: By.xpath('//*[@id="js_wrapper"]/div[2]/div[1]/article/div[3]/div/div[1]/div/div[2]/div/span[1]/span/span[1]'),
+    arrivalAt: By.xpath('./div[@class="flight_table-cell width_02-o"]/div[@class="plane_ticket-c"]/span[@class="plane_ticket-wrapper right_col-o"]/span'),
     arrivalToName: By.xpath('//*[@id="js_wrapper"]/div[2]/div[1]/article/div[3]/div/div[1]/div/div[2]/div/span[3]/span/span'),
     happyPeachAmount: By.xpath('./div[3]/span[1]/span/span/span/span/span'),
     happyPeachPlusAmount: By.xpath('./div[4]/span[1]/span/span/span/span/span')
@@ -163,9 +164,6 @@ FLIGHT_MAP.forEach(function (flight, index) {
         }).then(function () {
             driver.findElement(topPage.tripFromClose).then(function (e) {
                 e.click();
-                driver.findElement(topPage.backgroundDialog)
-                        .then(function (elem) {
-                        });
             }).then(function () {
                 return driver.findElement(topPage.backgroundDialog);
             }).then(function (e) {
@@ -223,6 +221,12 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 e.getText().then(function (text) {
                                     var fromDate = moment(searchDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
                                     flightInfo.leavedAt = fromDate;
+                                });
+                            });
+                            row.findElement(flightInfoPage.arrivalAt).then(function (e) {
+                                e.getText().then(function (text) {
+                                    var toDate = moment(searchDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                    flightInfo.arrivalAt = toDate;
                                 });
                             });
                             row.findElement(flightInfoPage.leavedFromName).then(function (e) {

@@ -7,6 +7,7 @@ exports.flight_info = (function () {
     return {
         append: function (flightInfo) {
             flightInfo.leavedAt = flightInfo.leavedAt.toDate();
+            flightInfo.arrivalAt = flightInfo.arrivalAt.toDate();
             collection.insert(flightInfo);
         }
     }
