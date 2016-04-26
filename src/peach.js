@@ -38,33 +38,7 @@ var FLIGHT_MAP = [
     {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
     {from: "ISG", toList: ["KIX"]},
 ];
-var FlightInfo = {
-    flightId: '',
-    //航空会社CD
-    airlineCompanyCd: '',
-    //航空会社名称
-    airlineCompanyName: 'ピーチ',
-    //出発空港ID
-    leavedFrom: '',
-    //出発空港
-    leavedFromName: '',
-    //出発時間
-    leavedAt: '',
-    //到着空港ID
-    arrivalTo: '',
-    //到着空港
-    arrivalToName: '',
-    //到着時間
-    arrivalAt: '',
-    //料金プラン
-    flightPlan: '片道',
-    //空席状況
-    vacancyStatus: '',
-    //料金
-    amount: [],
-    //データ登録時間
-    createdAt: ''
-};
+
 
 
 var topPage = {
@@ -108,7 +82,7 @@ var flightInfoPage = {
 
 function replaceAmount(text) {
     if (text.match(/^(?:¥[0-9,]+)$/)) {
-        return text.replace(/[¥|,]/, '');
+        return text.replace(/[¥|,]/g, '');
     }
     return text;
 }
@@ -206,8 +180,8 @@ FLIGHT_MAP.forEach(function (flight, index) {
                     //フライトインフォは後でインスタンス化せねば
                     rows.forEach(function (row, key) {
 
-                        var flightInfo = '';
-                        flightInfo = (JSON.parse(JSON.stringify(FlightInfo)));
+                        var flightInfo = flight_info_append.flight_info.create();
+//                        flightInfo = (JSON.parse(JSON.stringify(FlightInfo)));
                         flightInfo.leavedFrom = from;
                         flightInfo.arrivalTo = to;
 
@@ -245,7 +219,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 if (isFound) {
                                     row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
                                         e.getText().then(function (text) {
-                                            flightInfo.amount.push({key: 'ハッピーピーチ', amount: replaceAmount(text)});
+                                            flightInfo.amount.push({key: 'ハッピーピーチ', amount: parseInt(replaceAmount(text))});
                                         });
                                     });
                                 }
@@ -255,7 +229,7 @@ FLIGHT_MAP.forEach(function (flight, index) {
                                 if (isFound) {
                                     row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
                                         e.getText().then(function (text) {
-                                            flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: replaceAmount(text)});
+                                            flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: parseInt(replaceAmount(text))});
                                         });
                                     });
                                 }
