@@ -38,33 +38,7 @@ var FLIGHT_MAP = [
     {from: "OKA", toList: ["KIX", "NRT", "FUK"]},
     {from: "ISG", toList: ["KIX"]},
 ];
-var FlightInfo = {
-    flightId: '',
-    //航空会社CD
-    airlineCompanyCd: '',
-    //航空会社名称
-    airlineCompanyName: 'ピーチ',
-    //出発空港ID
-    leavedFrom: '',
-    //出発空港
-    leavedFromName: '',
-    //出発時間
-    leavedAt: '',
-    //到着空港ID
-    arrivalTo: '',
-    //到着空港
-    arrivalToName: '',
-    //到着時間
-    arrivalAt: '',
-    //料金プラン
-    flightPlan: '片道',
-    //空席状況
-    vacancyStatus: '',
-    //料金
-    amount: [],
-    //データ登録時間
-    createdAt: ''
-};
+
 
 
 var topPage = {
@@ -83,7 +57,7 @@ var topPage = {
     },
     //dayDown
     arrivedTo: function (to) {
-                return By.xpath('//div[@id="dialogTo"]//*/li[@id="' + to + '"]/a');
+        return By.xpath('//div[@id="dialogTo"]//*/li[@id="' + to + '"]/a');
 //        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
 //            if (exists) {
 //                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
@@ -108,166 +82,167 @@ var flightInfoPage = {
 
 function replaceAmount(text) {
     if (text.match(/^(?:¥[0-9,]+)$/)) {
-        return text.replace(/[¥|,]/, '');
+        return text.replace(/[¥|,]/g, '');
     }
     return text;
 }
 
 
-var index = 0;
 //while (index < 60) {
 //    var searchDay = moment().add(++index, 'days').format("D");
 //    console.log(searchDay);
 //}
 
-var searchDay = moment().add(15, 'days').format("D");
+//var searchDay = moment().add(15, 'days').format("D");
 var searchDate = moment();
-FLIGHT_MAP.forEach(function (flight, index) {
-    var from = flight.from;
-    var toList = flight.toList;
-    index = index + 1;
+var index = 0;
+do {
+    var targetDate = moment(searchDate).add(index, 'days');
 
-    searchDate.add(index, 'days');
+    (function (targetDate) {
 
-    toList.forEach(function (to, key) {
-        driver.get(topPage.URL).then(function () {
+        FLIGHT_MAP.forEach(function (flight, index) {
+            var from = flight.from;
+            var toList = flight.toList;
+            index = index + 1;
 
-            return driver.findElement(topPage.tripOneWay);
-        }).then(function (e) {
-            driver.wait(until.elementIsVisible(e));
-        }).then(function () {
-            return driver
-                    .findElements(By.id("close"))
-                    .then(function (list) {
-                        webdriver.promise.filter(list, function (e) {
-                            e.isDisplayed().then(function (bool) {
-                                if (bool) {
-                                    e.click();
-                                    driver.sleep(500);
-                                }
+            toList.forEach(function (to, key) {
+                    driver.get(topPage.URL).then(function () {
+
+                    return driver.findElement(topPage.tripOneWay);
+                }).then(function (e) {
+                    driver.wait(until.elementIsVisible(e));
+                }).then(function () {
+                    return driver
+                            .findElements(By.id("close"))
+                            .then(function (list) {
+                                webdriver.promise.filter(list, function (e) {
+                                    e.isDisplayed().then(function (bool) {
+                                        if (bool) {
+                                            e.click();
+                                            driver.sleep(500);
+                                        }
+                                    });
+                                });
+                            });
+                }).then(function () {
+                    return driver.findElement(topPage.tripOneWay);
+                }).then(function (e) {
+                    e.click();
+                }).then(function () {
+                    return driver.findElement(topPage.tripFrom);
+                }).then(function (e) {
+                    e.click();
+                }).then(function () {
+                    return driver.findElement(topPage.leavedFrom(from));
+                }).then(function (e) {
+                    e.click();
+                }).then(function () {
+                    driver.findElement(topPage.tripFromClose).then(function (e) {
+                        e.click();
+                    }).then(function () {
+                        return driver.findElement(topPage.backgroundDialog);
+                    }).then(function (e) {
+                        return driver.wait(until.elementIsNotVisible(e));
+                    }).then(function () {
+                        return driver.findElement(topPage.tripTo);
+                    }).then(function (e) {
+                        e.click();
+                    }).then(function () {
+                        return driver.findElement(topPage.arrivedTo(to));
+                    }).then(function (e) {
+                        return e.click();
+                    }).then(function (e) {
+                        //なんか違うのでまたないとおっそいです
+                        return driver.sleep(5000);
+                    }).then(function () {
+                        return driver.findElement(By.id("dialogDepartingOnClose"));
+                    }).then(function (e) {
+                        e.click();
+                    }).then(function () {
+                        return driver.findElement(topPage.backgroundDialog);
+                    }).then(function (e) {
+                        return driver.wait(until.elementIsNotVisible(e));
+                    }).then(function (e) {
+                        driver.executeScript(function (date) {
+                            $("#inputDepartingon").val(date)
+                        }, targetDate.format('YYYY/MM/DD'));
+                    }).then(function () {
+                        driver.findElement(topPage.search).click();
+                    }).then(function () {
+                        //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
+                        return driver.sleep(5000);
+                    }).then(function () {
+
+                        var priceRowsPromise = driver.findElements(flightInfoPage.priceRows);
+                        priceRowsPromise.then(function (rows) {
+
+                            var flightInfoList = [];
+                            //フライトインフォは後でインスタンス化せねば
+                            rows.forEach(function (row, key) {
+
+                                var flightInfo = flight_info_append.flight_info.create();
+                                flightInfo.leavedFrom = from;
+                                flightInfo.arrivalTo = to;
+
+                                flow = webdriver.promise.controlFlow();
+                                flow.execute(function () {
+                                    row.findElement(flightInfoPage.priceFlightName).then(function (e) {
+                                        e.getText().then(function (text) {
+                                            flightInfo.flightId = text;
+                                        });
+                                    });
+                                    row.findElement(flightInfoPage.leavedAt).then(function (e) {
+                                        e.getText().then(function (text) {
+                                            var fromDate = moment(targetDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                            flightInfo.leavedAt = fromDate;
+                                        });
+                                    });
+                                    row.findElement(flightInfoPage.arrivalAt).then(function (e) {
+                                        e.getText().then(function (text) {
+                                            var toDate = moment(targetDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                            flightInfo.arrivalAt = toDate;
+                                        });
+                                    });
+                                    row.findElement(flightInfoPage.leavedFromName).then(function (e) {
+                                        e.getText().then(function (text) {
+                                            flightInfo.leavedFromName = text;
+                                        });
+
+                                    });
+                                    row.findElement(flightInfoPage.arrivalToName).then(function (e) {
+                                        e.getText().then(function (text) {
+                                            flightInfo.arrivalToName = text;
+                                        });
+                                    });
+                                    row.isElementPresent(flightInfoPage.happyPeachAmount).then(function (isFound) {
+                                        if (isFound) {
+                                            row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
+                                                e.getText().then(function (text) {
+                                                    flightInfo.amount.push({key: 'ハッピーピーチ', amount: parseInt(replaceAmount(text))});
+                                                });
+                                            });
+                                        }
+                                    });
+
+                                    row.isElementPresent(flightInfoPage.happyPeachPlusAmount).then(function (isFound) {
+                                        if (isFound) {
+                                            row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
+                                                e.getText().then(function (text) {
+                                                    flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: parseInt(replaceAmount(text))});
+                                                });
+                                            });
+                                        }
+                                    });
+                                }).then(function () {
+                                    flight_info_append.flight_info.append(flightInfo);
+                                });
+
                             });
                         });
                     });
-        }).then(function () {
-            return driver.findElement(topPage.tripOneWay);
-        }).then(function (e) {
-            e.click();
-        }).then(function () {
-            return driver.findElement(topPage.tripFrom);
-        }).then(function (e) {
-            e.click();
-        }).then(function () {
-            return driver.findElement(topPage.leavedFrom(from));
-        }).then(function (e) {
-            e.click();
-        }).then(function () {
-            driver.findElement(topPage.tripFromClose).then(function (e) {
-                e.click();
-            }).then(function () {
-                return driver.findElement(topPage.backgroundDialog);
-            }).then(function (e) {
-                return driver.wait(until.elementIsNotVisible(e));
-            }).then(function () {
-                return driver.findElement(topPage.tripTo);
-            }).then(function (e) {
-                e.click();
-            }).then(function () {
-                return driver.findElement(topPage.arrivedTo(to));
-            }).then(function (e) {
-                e.click();
-            }).then(function () {
-                return driver.findElements(topPage.dayList);
-            }).then(function (list) {
-                return webdriver.promise.filter(list, function (e) {
-
-                    return e.getText().then(function (text) {
-                        return text === searchDate.format("D");
-                    });
                 });
-            }).then(function (elem) {
-                // 日付が反映される前にクリックされるためスリープを入れる。
-                driver.sleep(500);
-                elem[0].click();
-            }).then(function () {
-                return driver.findElement(topPage.backgroundDialog);
-            }).then(function (e) {
-                return driver.wait(until.elementIsNotVisible(e));
-            }).then(function () {
-                driver.findElement(topPage.search).click();
-            }).then(function () {
-                //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
-                return driver.sleep(5000);
-            }).then(function () {
-
-                var priceRowsPromise = driver.findElements(flightInfoPage.priceRows);
-                priceRowsPromise.then(function (rows) {
-
-                    var flightInfoList = [];
-                    //フライトインフォは後でインスタンス化せねば
-                    rows.forEach(function (row, key) {
-
-                        var flightInfo = '';
-                        flightInfo = (JSON.parse(JSON.stringify(FlightInfo)));
-                        flightInfo.leavedFrom = from;
-                        flightInfo.arrivalTo = to;
-
-                        flow = webdriver.promise.controlFlow();
-                        flow.execute(function () {
-                            row.findElement(flightInfoPage.priceFlightName).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightInfo.flightId = text;
-                                });
-                            });
-                            row.findElement(flightInfoPage.leavedAt).then(function (e) {
-                                e.getText().then(function (text) {
-                                    var fromDate = moment(searchDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
-                                    flightInfo.leavedAt = fromDate;
-                                });
-                            });
-                            row.findElement(flightInfoPage.arrivalAt).then(function (e) {
-                                e.getText().then(function (text) {
-                                    var toDate = moment(searchDate.format('YYYY/MM/DD') + ' ' + text, 'YYYY/MM/DD HH:mm');
-                                    flightInfo.arrivalAt = toDate;
-                                });
-                            });
-                            row.findElement(flightInfoPage.leavedFromName).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightInfo.leavedFromName = text;
-                                });
-
-                            });
-                            row.findElement(flightInfoPage.arrivalToName).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightInfo.arrivalToName = text;
-                                });
-                            });
-                            row.isElementPresent(flightInfoPage.happyPeachAmount).then(function (isFound) {
-                                if (isFound) {
-                                    row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
-                                        e.getText().then(function (text) {
-                                            flightInfo.amount.push({key: 'ハッピーピーチ', amount: replaceAmount(text)});
-                                        });
-                                    });
-                                }
-                            });
-
-                            row.isElementPresent(flightInfoPage.happyPeachPlusAmount).then(function (isFound) {
-                                if (isFound) {
-                                    row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
-                                        e.getText().then(function (text) {
-                                            flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: replaceAmount(text)});
-                                        });
-                                    });
-                                }
-                            });
-                        }).then(function () {
-                            flight_info_append.flight_info.append(flightInfo);
-                        });
-
-                    });
-                });
-            });
+            })
         });
-
-    });
-});
+    })(targetDate);
+} while (++index < 60);
