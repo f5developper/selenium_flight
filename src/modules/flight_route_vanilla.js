@@ -1,7 +1,5 @@
 var mongo = require('mongoskin');
 
-
-
 exports.faindAll = function (callback) {
     var client = mongo.db('mongodb://flight:mC5DJaYi@160.16.95.237/flight');
     client.bind('flight_route_vanilla');
@@ -14,7 +12,7 @@ exports.faindAll = function (callback) {
             return err;
         }
 
-        for (var i = 0, size = items.length; i < 2; ++i) {
+        for (var i = 0, size = items.length; i < size; ++i) {
             callback(items[i].from,items[i].from_name,items[i].to,items[i].to_name);
         }
         console.log('--faindAll  end--');
