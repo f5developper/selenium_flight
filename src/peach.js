@@ -26,6 +26,7 @@ var driver = new webdriver.Builder()
 //});
 
 var FLIGHT_MAP = [
+    {from: "KIX", toList: ["CTS"]},
     {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
     {from: "CTS", toList: ["KIX", "NRT"]},
     {from: "SDJ", toList: ["KIX"]},
@@ -58,12 +59,6 @@ var topPage = {
     //dayDown
     arrivedTo: function (to) {
         return By.xpath('//div[@id="dialogTo"]//*/li[@id="' + to + '"]/a');
-//        driver.isElementPresent(By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a')).then(function (exists) {
-//            if (exists) {
-//                return By.xpath('//div[@id="dialogTo"]/div[@class="dialog_2columns"]/*/ul/li[@id="' + to + '"]/a');
-//            }
-//
-//        });
     },
     dayList: By.xpath('//div[@id="calendar-input-departing-on-1"]/*/div[@class="boxMainStripped"]/div[@class="boxMainInner"]/div[@class="boxMainCellsContainer"]/div[@class="dayNormal"]'),
     search: By.name('flyinpeach-booking')
@@ -87,13 +82,6 @@ function replaceAmount(text) {
     return text;
 }
 
-
-//while (index < 60) {
-//    var searchDay = moment().add(++index, 'days').format("D");
-//    console.log(searchDay);
-//}
-
-//var searchDay = moment().add(15, 'days').format("D");
 var searchDate = moment();
 var index = 0;
 do {
@@ -153,22 +141,10 @@ do {
                     }).then(function (e) {
                         return e.click();
                     }).then(function (e) {
-                        //なんか違うのでまたないとおっそいです
-                        return driver.sleep(5000);
-                    }).then(function () {
-                        return driver.findElement(By.id("dialogDepartingOnClose"));
-                    }).then(function (e) {
-                        e.click();
-                    }).then(function () {
-                        return driver.findElement(topPage.backgroundDialog);
-                    }).then(function (e) {
-                        return driver.wait(until.elementIsNotVisible(e));
-                    }).then(function (e) {
                         driver.executeScript(function (date) {
                             $("#inputDepartingon").val(date)
+                            $("input[name=flyinpeach-booking]").trigger('click');
                         }, targetDate.format('YYYY/MM/DD'));
-                    }).then(function () {
-                        driver.findElement(topPage.search).click();
                     }).then(function () {
                         //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
                         return driver.sleep(5000);
@@ -237,7 +213,6 @@ do {
                                 }).then(function () {
                                     flight_info_append.flight_info.append(flightInfo);
                                 });
-
                             });
                         });
                     });
@@ -245,4 +220,4 @@ do {
             })
         });
     })(targetDate);
-} while (++index < 60);
+} while (++index < 180);

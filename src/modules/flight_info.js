@@ -1,8 +1,11 @@
 var mongo = require('mongoskin');
 var moment = require('moment');
+var database = require('./database');
+var notification = require('./notification');
+
 var FlightInfo = {
-    createdAt:'',
-    updateAt: '',      
+    createdAt: '',
+    updateAt: '',
     flightId: '',
     //航空会社CD
     airlineCompanyCd: '',
@@ -28,16 +31,35 @@ var FlightInfo = {
     amount: [],
 };
 
+var COLLECTION_NAME = 'flight_info';
+var collection = null;
 exports.flight_info = (function () {
-    var client = mongo.db('mongodb://flight:mC5DJaYi@160.16.95.237/flight');
-    var collection = client.collection('flight_info');
+    collection = database.database.createCollection(COLLECTION_NAME);
     return {
         append: function (flightInfo) {
             flightInfo.leavedAt = flightInfo.leavedAt.toDate();
             flightInfo.arrivalAt = flightInfo.arrivalAt.toDate();
             collection.insert(flightInfo);
+
+            collection.aggregate([
+                {$match: {"_id": flightInfo._id}}, {$project: {_id: 1, flightId: 1, leavedFrom: 1, arrivalTo: 1, leavedAt: 1, arrivalAt: 1, airlineCompanyName: 1, amount: {$min: "$amount.amount"}}}
+            ], function (err, result) {
+                result.forEach(function (price) {
+                    var from = moment(price.leavedAt).startOf('day');
+                    var to = moment(price.leavedAt).endOf('day');
+
+                    notification.notification.getCollection().find({noticeAmount: {$ne: price.amount}, leavedAt: {$gte: from.toDate(), $lt: to.toDate()}, leavedPort: price.leavedFrom, arrivalPort: price.arrivalTo})
+                            .toArray(function (error, notices) {
+                                notices.forEach(function (notice) {
+                                    notice.prices.push(price);
+                                    notice.isNotice = '1';
+                                    notification.notification.getCollection().update({_id: mongo.helper.toObjectID(notice._id)}, notice);
+                                });
+                            });
+                });
+            });
         },
-        create:function(){
+        create: function () {
             var ins = (JSON.parse(JSON.stringify(FlightInfo)));
             ins.createdAt = moment().toDate();
             ins.updatedAt = moment().toDate();
