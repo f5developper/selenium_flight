@@ -126,28 +126,31 @@ do {
                 }).then(function (e) {
                     e.click();
                 }).then(function () {
-                    driver.findElement(topPage.tripFromClose).then(function (e) {
-                        e.click();
-                    }).then(function () {
-                        return driver.findElement(topPage.backgroundDialog);
-                    }).then(function (e) {
-                        return driver.wait(until.elementIsNotVisible(e));
-                    }).then(function () {
-                        return driver.findElement(topPage.tripTo);
-                    }).then(function (e) {
-                        e.click();
-                    }).then(function () {
-                        return driver.findElement(topPage.arrivedTo(to));
-                    }).then(function (e) {
+                    // 出発地の選択画面を閉じずにクリック後はToの選択を行うようにしたためコメントアウト
+//                    driver.findElement(topPage.tripFromClose).then(function (e) {
+//                        e.click();
+//                    }).then(function () {
+//                        return driver.findElement(topPage.backgroundDialog);
+//                    }).then(function (e) {
+//                        return driver.wait(until.elementIsNotVisible(e));
+//                    }).then(function () {
+//                        return driver.findElement(topPage.tripTo);
+//                    }).then(function (e) {
+//                    driver.findElement(topPage.tripTo).then(function (e)){
+//                        e.click();
+//                    }).then(function () {
+//                        return driver.findElement(topPage.arrivedTo(to));
+//                    }).then(function (e) {
+                    driver.findElement(topPage.arrivedTo(to)).then(function (e){
                         return e.click();
                     }).then(function (e) {
                         driver.executeScript(function (date) {
-                            $("#inputDepartingon").val(date)
+                            $("#inputDepartingon").val(date),
                             $("input[name=flyinpeach-booking]").trigger('click');
                         }, targetDate.format('YYYY/MM/DD'));
                     }).then(function () {
                         //ロード後のすくりぷとが終わるの待つ必要があるんですが、とりあえず
-                        return driver.sleep(5000);
+                        return driver.sleep(1000);
                     }).then(function () {
 
                         var priceRowsPromise = driver.findElements(flightInfoPage.priceRows);
