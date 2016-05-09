@@ -1,4 +1,4 @@
-var logger = require('../moduls/logger');
+var logger = require('../modules/logger');
 
 
 logger.info('log module test info');
