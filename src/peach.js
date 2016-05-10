@@ -26,7 +26,6 @@ var driver = new webdriver.Builder()
 //});
 
 var FLIGHT_MAP = [
-    {from: "KIX", toList: ["CTS"]},
     {from: "KIX", toList: ["CTS", "SDJ", "NRT", "MYJ", "FUK", "NGS", "KMI", "KOJ", "OKA"]},
     {from: "CTS", toList: ["KIX", "NRT"]},
     {from: "SDJ", toList: ["KIX"]},
@@ -161,6 +160,7 @@ do {
                             rows.forEach(function (row, key) {
 
                                 var flightInfo = flight_info_append.flight_info.create();
+                                flightInfo.airlineCompanyCd='1';
                                 flightInfo.leavedFrom = from;
                                 flightInfo.arrivalTo = to;
 
