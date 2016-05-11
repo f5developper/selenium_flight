@@ -272,7 +272,7 @@ var putFlightInfo = function () {
 
                         //料金のレコードがあるならループする
                         var flightObj = flightInfo.flight_info.create();
-                        flightInfo.airlineCompanyName = 'vanilla';
+                        flightObj.airlineCompanyName = 'vanilla';
                         flightObj.leavedFrom = flight.from;
                         flightObj.leavedFromName = flight.from_name;
                         flightObj.arrivalTo = flight.to;
