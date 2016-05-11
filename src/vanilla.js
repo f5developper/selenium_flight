@@ -277,7 +277,6 @@ var putFlightInfo = function () {
                         flightObj.leavedFromName = flight.from_name;
                         flightObj.arrivalTo = flight.to;
                         flightObj.arrivalToName = flight.to_name;
-                        flightObj.createdAt = days;
 
                         flow = webdriver.promise.controlFlow();
                         flow.execute(function () {
