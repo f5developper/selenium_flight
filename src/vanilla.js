@@ -247,6 +247,8 @@ var putFlightInfo = function () {
 
                 driver.get(url).then(function () {
                     logger.info('putPlice -- start --');
+                    logger.debug('find =//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]');
+
                     driver.wait(driver.findElement(By.xpath('//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]')), 20000);
                     logger.debug('--step1--');
                     return;
@@ -280,8 +282,9 @@ var putFlightInfo = function () {
 
                         flow = webdriver.promise.controlFlow();
                         flow.execute(function () {
-                            logger.debug('--roop - ' + count);
+                            logger.debug('--Loop - ' + count);
                             //便名、出発日、到着日を取得
+                            logger.debug('==find By xpath =' + "//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt");
                             row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt")).then(
                                     function (e) {
                                         e.getText().then(
