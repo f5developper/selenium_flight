@@ -106,18 +106,15 @@ var putFlightInfo = function () {
                 logger.debug(url)
 
                 driver.get(url).then(function () {
-                    logger.info(' -- start --');
-                    driver.wait(driver.findElement(By.xpath('//[@id="goFlightsShow"]')), 20000);
                     logger.debug('--step1--');
-                    return;
-
-                }).then(function () {
-                    logger.debug('--step2--');
                     return driver.sleep(5000);
                 }).then(function () {
+                    logger.debug('--step2--');
+                    driver.wait(driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']")), 20000);
+                    return;
+                }).then(function () {
                     logger.debug('--step3--');
-                    //料金リスト取得
-                    return driver.findElements(By.xpath("//[@id='goFlightsShow']/tr"));
+                    return driver.findElements(By.xpath(".//tbody[@id='goFlightsShow']/tr"));
                 }).then(function (rows) {
                     //航空データが無い場合は処理を抜ける
                     logger.debug('rows = ' + rows.length);
@@ -126,57 +123,89 @@ var putFlightInfo = function () {
                         return;
                     }
 
-                    for (var count = 1; count < rows.length(); count++) {
-                        var flightObj = flightInfo.flight_info.create();
-                        flightObj.airlineCompanyName = '春秋航空';
-                        flightObj.leavedFrom = flight.from;
-                        flightObj.leavedFromName = flight.from_name;
-                        flightObj.arrivalTo = flight.to;
-                        flightObj.arrivalToName = flight.to_name;
-                        flightObj.createdAt = days;
-
+                    count = 1;
+                    rows.forEach(function () {
+                        logger.debug('get element ');
                         flow.execute(function () {
-
-                            var columns = driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt"));
-                            if (columns.length() > 1) {
+                            var flightObj = flightInfo.flight_info.create();
+                            logger.debug('loop : ' + count);
+                            //最後の1行は処理しない
+                            if(count == rows.length){
+                                logger.debug('loop end');
+                                return;
                             }
+                            
+                            flightObj.airlineCompanyName = '春秋航空';
+                            flightObj.leavedFrom = flight.from;
+                            flightObj.leavedFromName = flight.from_name;
+                            flightObj.arrivalTo = flight.to;
+                            flightObj.arrivalToName = flight.to_name;
+                            flightObj.createdAt = days;
 
-                            driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt[@class='first springjp']")).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightObj.flightId = text;
-                                    logger.debug('航空ID =' + flightObj.flightId);
-                                })
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td");
+                            driver.findElements(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td")).then(function (rows, err) {
+                                logger.debug('rows.length :' + rows.length);
+                                if (rows.length <= 1) {
+                                    logger.debug('no data');
+                                    return 'end';
+                                }
+
                             });
 
-                            driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt[@class='bolda']")).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightObj.leavedAt = moment(days + ' ' + text, 'YYYY/MM/DD HH:mm');
-                                    logger.debug('出発時間 =' + flightObj.leavedAt.toDate());
-                                })
-                            });
-                            driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt[3]")).then(function (e) {
-                                e.getText().then(function (text) {
-                                    flightObj.arrivalAt = moment(days + ' ' + text, 'YYYY/MM/DD HH:mm');
-                                    logger.debug('到着時間 =' + flightObj.arrivalAt.toDate());
-                                })
-                            });
-                            driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt[@class='cn_txt_03 td_plus']")).then(function (e) {
-                                e.getText().then(function (text) {
-                                    logger.debug('スプリング プラス = ' + text);
-                                    flightObj.amount.push({key: 'スプリング プラス', amount: replaceAmount(text)});
-                                })
-                            });
-                            driver.findElements(By.xpath("//[@id='goFlightsShow']/tr[" + count + "]/dt[@class='cn_txt_03 td_flexi']")).then(function (e) {
-                                e.getText().then(function (text) {
-                                    logger.debug('スプリング = ' + text);
-                                    flightObj.amount.push({key: 'スプリング', amount: replaceAmount(text)});
-                                })
-                            });
-                        }).then(function () {
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='first springjp']");
+                            driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='first springjp']")).then(
+                                    function (e) {
+                                        return e.getText();
+                                    }).then(function (text) {
+                                        flightObj.flightId = text;
+                                        logger.debug('航空ID =' + flightObj.flightId);
+                                    });
+
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='bolda']");
+                            driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='bolda']")).then(
+                                    function (e) {
+                                        return e.getText();
+                                    }).then(function (text) {
+                                        flightObj.leavedAt = moment(days + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                        logger.debug('出発時間 =' + flightObj.leavedAt.toDate());
+                                    });
+
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[3]");
+                            driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[3]")).then(
+                                    function (e) {
+                                        return e.getText();
+                                    }).then(function (text) {
+                                        flightObj.arrivalAt = moment(days + ' ' + text, 'YYYY/MM/DD HH:mm');
+                                        logger.debug('到着時間 =' + flightObj.arrivalAt.toDate());
+                                    });
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='cn_txt_03 td_plus']");
+                            driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='cn_txt_03 td_plus']")).then(
+                                    function (e) {
+                                        return e.getText();
+                                    }).then(function (text) {
+                                        logger.debug('スプリング プラス = ' + text);
+                                        flightObj.amount.push({key: 'スプリング プラス', amount: replaceAmount(text)});
+                                    });
+                            logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='cn_txt_03 td_flexi']");
+                            driver.findElement(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td[@class='cn_txt_03 td_flexi']")).then(
+                                    function (e) {
+                                        return e.getText();
+                                    }).then(function (text) {
+                                        logger.debug('スプリング = ' + text);
+                                        flightObj.amount.push({key: 'スプリング', amount: replaceAmount(text)});
+                                    });
+                            return flightObj;
+                        }).then(function (flightObj) {
+                            logger.debug('--flightObj = ' + flightObj);
+                            if(typeof flightObj === 'undefined'){
+                                logger.debug('--data append end');
+                                return;
+                            }
                             logger.debug('--data append = ' + count);
                             flightInfo.flight_info.append(flightObj);
+                            count++;
                         });
-                    }
+                    });
                 });
                 if (days === endDay) {
                     break;
