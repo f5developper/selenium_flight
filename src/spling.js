@@ -140,7 +140,6 @@ var putFlightInfo = function () {
                             flightObj.leavedFromName = flight.from_name;
                             flightObj.arrivalTo = flight.to;
                             flightObj.arrivalToName = flight.to_name;
-                            flightObj.createdAt = days;
 
                             logger.debug('find==' + ".//tbody[@id='goFlightsShow']/tr[" + count + "]/td");
                             driver.findElements(By.xpath(".//tbody[@id='goFlightsShow']/tr[" + count + "]/td")).then(function (rows, err) {
