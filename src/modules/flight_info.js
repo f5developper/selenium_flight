@@ -30,16 +30,17 @@ var FlightInfo = {
     //料金
     amount: [],
 };
-function replaceAmount(text) {
+
+var COLLECTION_NAME = 'flight_info';
+var collection = null;
+exports.flight_info = (function () {
+    function replaceAmount(text) {
     if (text.match(/^(?:¥[0-9,]+)$/)) {
         return text.replace(/[¥|,]/g, '');
     }
     return text;
 }
 
-var COLLECTION_NAME = 'flight_info';
-var collection = null;
-exports.flight_info = (function () {
     collection = database.database.createCollection(COLLECTION_NAME);
     return {
         append: function (flightInfo) {
