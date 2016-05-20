@@ -45,7 +45,7 @@ var webdriver = require('selenium-webdriver'),
 var driver = new webdriver.Builder()
         .forBrowser('chrome')
         .build();
-logger.debug("serch setting start.");
+logger.info('-- vanilla.js start --');
 
 ////**************************************************
 //エラーハンドリング
@@ -227,134 +227,126 @@ function createURL(from, to, day) {
     return "https://www.vanilla-air.com/jp/booking/#/flight-select/?tripType=OW&origin=" + from + "&destination=" + to + "&outboundDate=" + day + "&adults=1&children=0&infants=0&promoCode=&mode=searchResultInter";
 }
 
-//円マーク除去
-function replaceAmount(text) {
-    if (text.match(/^(?:¥[0-9,]+)$/)) {
-        return text.replace(/[¥|,]/, '');
-    }
-    return text;
-}
-var putFlightInfo = function () {
+var putFlightInfo = function (days,flight) {
+    logger.info('--putFlightInfo start --');
+    
+    var url = createURL(flight.from, flight.to, days);
+    logger.debug(url);
 
-    logger.info('main -- start --');
+    driver.get(url).then(function () {
+        logger.debug('find =//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]');
+
+        driver.wait(driver.findElement(By.xpath('//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]')), 20000);
+        logger.debug('--step1--');
+        return;
+
+    }).then(function () {
+        logger.debug('--step2--');
+        return driver.sleep(5000);
+    }).then(function () {
+        logger.debug('--step3--');
+        //料金リスト取得
+        return driver.findElements(By.xpath("//dl[@class='flip-in rowroot ng-scope']"));
+    }).then(function (rows) {
+        //航空データが無い場合は処理を抜ける
+        logger.debug('rows = ' + rows.length);
+        if (rows.length == 0) {
+            logger.debug('-- flight route not found --');
+            return;
+        }
+
+        rows.forEach(function (row, key) {
+            logger.debug('--step4--');
+            var count = parseInt(key) + 1;
+
+            //料金のレコードがあるならループする
+            var flightObj = flightInfo.flight_info.create();
+            flightObj.airlineCompanyName = 'vanilla';
+            flightObj.leavedFrom = flight.from;
+            flightObj.leavedFromName = flight.from_name;
+            flightObj.arrivalTo = flight.to;
+            flightObj.arrivalToName = flight.to_name;
+
+            flow = webdriver.promise.controlFlow();
+            flow.execute(function () {
+                logger.debug('--Loop - ' + count);
+                //便名、出発日、到着日を取得
+                logger.debug('==find By xpath =' + "//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt");
+                row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt")).then(
+                        function (e) {
+                            e.getText().then(
+                                    function (text) {
+                                        logger.debug('--step5--');
+                                        //航空会社CD
+                                        var flightid = text.toString().substr(0, 5);
+                                        flightObj.flightId = flightid;
+                                        //出発時間
+                                        var times = text.toString().substr(6);
+                                        logger.debug('航空ID =' + flightid);
+                                        //到着時間
+                                        flightObj.leavedAt = moment(days + ' ' + times.substr(0, 5), 'YYYY/MM/DD HH:mm');
+                                        flightObj.arrivalAt = moment(days + ' ' + times.substr(6), 'YYYY/MM/DD HH:mm');
+                                        logger.debug('出発時間 =' + flightObj.leavedAt.toDate());
+                                        logger.debug('到着時間 =' + flightObj.arrivalAt.toDate());
+                                    })
+                        });
+
+                row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]/div/span")).then(
+                        function (e) {
+                            e.getText().then(function (text) {
+                                logger.debug('--step6--');
+                                logger.debug(text);
+                                if (text == '満席') {
+                                    logger.debug('×');
+                                    flightObj.vacancyStatus = '×';
+                                } else {
+                                    logger.debug('○');
+                                    flightObj.vacancyStatus = '○';
+
+                                    row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]//span[@class='pl30 ng-binding']")).then(
+                                            function (e) {
+                                                e.getText().then(function (text) {
+                                                    logger.debug('込々プラン = ' + text);
+                                                    flightObj.amount.push({key: 'コミコミプラン', amount: text});
+                                                })
+                                            });
+                                    row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]//span[@class='pl30 ng-binding']")).then(
+                                            function (e) {
+                                                e.getText().then(function (text) {
+                                                    logger.debug('シンプルプラン = ' + text);
+                                                    flightObj.amount.push({key: 'シンプルプラン', amount: text});
+                                                })
+                                            });
+                                }
+                            })
+                        });
+
+            }).then(function () {
+                logger.debug('--data append = ' + count);
+                flightInfo.flight_info.append(flightObj);
+            });
+        });
+    });
+};
+
+
+var main = function () {
+    logger.debug('main -- start --');
     driver.get('https://www.google.co.jp/?gws_rd=ssl').then(function () {
         flightList.forEach(function (flight) {
-
             var days = startDay;
-            for (; ; ) {
-                var url = createURL(flight.from, flight.to, days);
-                logger.debug(url)
-
-                driver.get(url).then(function () {
-                    logger.info('putPlice -- start --');
-                    logger.debug('find =//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]');
-
-                    driver.wait(driver.findElement(By.xpath('//div[@class="vnl-flight-selected-date_flights vnl-table"]/dl/dt/span[@class="vnl-flight-selected-date_bar-selectedDate ng-binding"]')), 20000);
-                    logger.debug('--step1--');
-                    return;
-
-                }).then(function () {
-                    logger.debug('--step2--');
-                    return driver.sleep(5000);
-                }).then(function () {
-                    logger.debug('--step3--');
-                    //料金リスト取得
-                    return driver.findElements(By.xpath("//dl[@class='flip-in rowroot ng-scope']"));
-                }).then(function (rows) {
-                    //航空データが無い場合は処理を抜ける
-                    logger.debug('rows = ' + rows.length);
-                    if (rows.length == 0) {
-                        logger.info('-- flight route not found --');
-                        return;
-                    }
-
-                    rows.forEach(function (row, key) {
-                        logger.debug('--step4--');
-                        var count = parseInt(key) + 1;
-
-                        //料金のレコードがあるならループする
-                        var flightObj = flightInfo.flight_info.create();
-                        flightObj.airlineCompanyName = 'vanilla';
-                        flightObj.leavedFrom = flight.from;
-                        flightObj.leavedFromName = flight.from_name;
-                        flightObj.arrivalTo = flight.to;
-                        flightObj.arrivalToName = flight.to_name;
-
-                        flow = webdriver.promise.controlFlow();
-                        flow.execute(function () {
-                            logger.debug('--Loop - ' + count);
-                            //便名、出発日、到着日を取得
-                            logger.debug('==find By xpath =' + "//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt");
-                            row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dt")).then(
-                                    function (e) {
-                                        e.getText().then(
-                                                function (text) {
-                                                    logger.debug('--step5--');
-                                                    //航空会社CD
-                                                    var flightid = text.toString().substr(0, 5);
-                                                    flightObj.flightId = flightid;
-                                                    //出発時間
-                                                    var times = text.toString().substr(6);
-                                                    logger.debug('航空ID =' + flightid);
-                                                    //到着時間
-                                                    flightObj.leavedAt = moment(days + ' ' + times.substr(0, 5), 'YYYY/MM/DD HH:mm');
-                                                    flightObj.arrivalAt = moment(days + ' ' + times.substr(6), 'YYYY/MM/DD HH:mm');
-                                                    logger.debug('出発時間 =' + flightObj.leavedAt.toDate());
-                                                    logger.debug('到着時間 =' + flightObj.arrivalAt.toDate());
-                                                })
-                                    });
-
-                            row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]/div/span")).then(
-                                    function (e) {
-                                        e.getText().then(function (text) {
-                                            logger.debug('--step6--');
-                                            logger.debug(text);
-                                            if (text == '満席') {
-                                                logger.debug('×');
-                                                flightObj.vacancyStatus = '×';
-                                            } else {
-                                                logger.debug('○');
-                                                flightObj.vacancyStatus = '○';
-
-                                                row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]//span[@class='pl30 ng-binding']")).then(
-                                                        function (e) {
-                                                            e.getText().then(function (text) {
-                                                                logger.debug('込々プラン = ' + text);
-                                                                flightObj.amount.push({key: 'コミコミプラン', amount: replaceAmount(text)});
-                                                            })
-                                                        });
-                                                row.findElement(By.xpath("//dl[@class='flip-in rowroot ng-scope'][" + count + "]/dd[1]//span[@class='pl30 ng-binding']")).then(
-                                                        function (e) {
-                                                            e.getText().then(function (text) {
-                                                                logger.debug('シンプルプラン = ' + text);
-                                                                flightObj.amount.push({key: 'シンプルプラン', amount: replaceAmount(text)});
-                                                            })
-                                                        });
-                                            }
-                                        })
-                                    });
-
-                        }).then(function () {
-                            logger.debug('--data append = ' + count);
-                            flightInfo.flight_info.append(flightObj);
-                        });
-                    });
-                });
-                if (days === endDay) {
-                    break;
-                }
+            while (days <= endDay) {
+                putFlightInfo(days,flight);
                 days = date.nextDay(days);
             }
-
         });
-        logger.info('main -- end --');
-
+        logger.debug('main -- end --');
     });
 }
 
-flow.execute(putFlightInfo);
+flow.execute(main);
 flow.execute(function () {
     driver.quit();
-    logger.info('-- close --');
+    logger.info('-- vanilla.js close --');
     process.exit();
 });
