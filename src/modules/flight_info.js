@@ -30,6 +30,12 @@ var FlightInfo = {
     //料金
     amount: [],
 };
+function replaceAmount(text) {
+    if (text.match(/^(?:¥[0-9,]+)$/)) {
+        return text.replace(/[¥|,]/g, '');
+    }
+    return text;
+}
 
 var COLLECTION_NAME = 'flight_info';
 var collection = null;
@@ -39,6 +45,10 @@ exports.flight_info = (function () {
         append: function (flightInfo) {
             flightInfo.leavedAt = flightInfo.leavedAt.toDate();
             flightInfo.arrivalAt = flightInfo.arrivalAt.toDate();
+            flightInfo.amount.forEach(function(data, key ){
+                data.amount =replaceAmount(data.amount); 
+            });
+            
             collection.insert(flightInfo);
 
             collection.aggregate([
