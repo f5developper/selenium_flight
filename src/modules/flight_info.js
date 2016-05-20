@@ -47,7 +47,8 @@ exports.flight_info = (function () {
             flightInfo.leavedAt = flightInfo.leavedAt.toDate();
             flightInfo.arrivalAt = flightInfo.arrivalAt.toDate();
             flightInfo.amount.forEach(function(data, key ){
-                data.amount =replaceAmount(data.amount); 
+
+                data.amount = parseInt(replaceAmount(data.amount)); 
             });
             
             collection.insert(flightInfo);

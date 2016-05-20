@@ -198,7 +198,7 @@ do {
                                         if (isFound) {
                                             row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
                                                 e.getText().then(function (text) {
-                                                    flightInfo.amount.push({key: 'ハッピーピーチ', amount: parseInt(replaceAmount(text))});
+                                                    flightInfo.amount.push({key: 'ハッピーピーチ', amount: replaceAmount(text)});
                                                 });
                                             });
                                         }
@@ -208,7 +208,7 @@ do {
                                         if (isFound) {
                                             row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
                                                 e.getText().then(function (text) {
-                                                    flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: parseInt(replaceAmount(text))});
+                                                    flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: replaceAmount(text)});
                                                 });
                                             });
                                         }
