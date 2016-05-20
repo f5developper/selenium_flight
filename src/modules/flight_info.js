@@ -35,7 +35,7 @@ var COLLECTION_NAME = 'flight_info';
 var collection = null;
 exports.flight_info = (function () {
     function replaceAmount(text) {
-    if (text.match(/^(?:¥[0-9,]+)$/)) {
+    if (text.match(/^(?:¥[0-9,\s]+)$/)) {
         return text.replace(/[¥|,]/g, '');
     }
     return text;
