@@ -36,10 +36,7 @@ var COLLECTION_NAME = 'flight_info';
 var collection = null;
 exports.flight_info = (function () {
     function replaceAmount(text) {
-    if (text.match(/^(?:¥[0-9,\s]+)$/)) {
-        return text.replace(/[¥|,]/g, '');
-    }
-    return text;
+    return text.replace(/[¥|,|\s|円]/g, '');
 }
 
     collection = database.database.createCollection(COLLECTION_NAME);

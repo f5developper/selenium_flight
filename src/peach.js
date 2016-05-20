@@ -74,12 +74,12 @@ var flightInfoPage = {
     happyPeachPlusAmount: By.xpath('./div[4]/span[1]/span/span/span/span/span')
 };
 
-function replaceAmount(text) {
-    if (text.match(/^(?:¥[0-9,]+)$/)) {
-        return text.replace(/[¥|,]/g, '');
-    }
-    return text;
-}
+//function replaceAmount(text) {
+//    if (text.match(/^(?:¥[0-9,]+)$/)) {
+//        return text.replace(/[¥|,]/g, '');
+//    }
+//    return text;
+//}
 
 var searchDate = moment();
 var index = 0;
@@ -198,7 +198,7 @@ do {
                                         if (isFound) {
                                             row.findElement(flightInfoPage.happyPeachAmount).then(function (e) {
                                                 e.getText().then(function (text) {
-                                                    flightInfo.amount.push({key: 'ハッピーピーチ', amount: replaceAmount(text)});
+                                                    flightInfo.amount.push({key: 'ハッピーピーチ', amount: text});
                                                 });
                                             });
                                         }
@@ -208,7 +208,7 @@ do {
                                         if (isFound) {
                                             row.findElement(flightInfoPage.happyPeachPlusAmount).then(function (e) {
                                                 e.getText().then(function (text) {
-                                                    flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: replaceAmount(text)});
+                                                    flightInfo.amount.push({key: 'ハッピーピーチプラス', amount: text});
                                                 });
                                             });
                                         }
