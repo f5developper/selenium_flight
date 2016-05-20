@@ -35,13 +35,10 @@ exports.info = function (message) {
 };
 
 exports.debug = function (message) {
-    console.log(message);
-    log4js.getLogger('system').debug(message);
     log4js.getLogger('debug').debug(message);
 };
 
 exports.error = function (message) {
-    console.log(message);
     log4js.getLogger('system').error(message);
     log4js.getLogger('error').error(message);
 };

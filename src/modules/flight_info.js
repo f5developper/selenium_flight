@@ -2,6 +2,7 @@ var mongo = require('mongoskin');
 var moment = require('moment');
 var database = require('./database');
 var notification = require('./notification');
+var logger = require('./logger');
 
 var FlightInfo = {
     createdAt: '',
@@ -52,7 +53,7 @@ exports.flight_info = (function () {
             });
             
             collection.insert(flightInfo);
-
+            logger.info('flight_info insert _id = ' + flightInfo._id);
             collection.aggregate([
                 {$match: {"_id": flightInfo._id}}, {$project: {_id: 1, flightId: 1, leavedFrom: 1, arrivalTo: 1, leavedAt: 1, arrivalAt: 1, airlineCompanyName: 1, amount: {$min: "$amount.amount"}}}
             ], function (err, result) {
