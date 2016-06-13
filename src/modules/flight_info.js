@@ -36,19 +36,19 @@ var COLLECTION_NAME = 'flight_info';
 var collection = null;
 exports.flight_info = (function () {
     function replaceAmount(text) {
-    return text.replace(/[¥|,|\s|円]/g, '');
-}
+        return text.replace(/[¥|,|\s|円]/g, '');
+    }
 
     collection = database.database.createCollection(COLLECTION_NAME);
     return {
         append: function (flightInfo) {
             flightInfo.leavedAt = flightInfo.leavedAt.toDate();
             flightInfo.arrivalAt = flightInfo.arrivalAt.toDate();
-            flightInfo.amount.forEach(function(data, key ){
+            flightInfo.amount.forEach(function (data, key) {
 
-                data.amount = parseInt(replaceAmount(data.amount)); 
+                data.amount = parseInt(replaceAmount(data.amount));
             });
-            
+
             collection.insert(flightInfo);
             logger.info('flight_info insert _id = ' + flightInfo._id);
             collection.aggregate([
@@ -58,11 +58,14 @@ exports.flight_info = (function () {
                     var from = moment(price.leavedAt).startOf('day');
                     var to = moment(price.leavedAt).endOf('day');
 
-                    notification.notification.getCollection().find({noticeAmount: {$ne: price.amount}, leavedAt: {$gte: from.toDate(), $lt: to.toDate()}, leavedPort: price.leavedFrom, arrivalPort: price.arrivalTo})
+                    notification.notification.getCollection().find({
+                        noticeAmount: {$gt: price.amount}, leavedAt: {$gte: from.toDate(), $lt: to.toDate()}, leavedPort: price.leavedFrom, arrivalPort: price.arrivalTo
+                    })
                             .toArray(function (error, notices) {
                                 notices.forEach(function (notice) {
                                     notice.prices.push(price);
                                     notice.isNotice = '1';
+                                    notice.noticeAmount = price.amount;
                                     notification.notification.getCollection().update({_id: mongo.helper.toObjectID(notice._id)}, notice);
                                 });
                             });
